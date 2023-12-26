@@ -13,39 +13,108 @@
 # limitations under the License.
 
 import streamlit as st
-from streamlit.logger import get_logger
 
-LOGGER = get_logger(__name__)
+def calculate_endometrial_cancer_stage(myometrial_invasion, cervical_stroma, extrauterine_diffusion,
+                                               LVSI, aggressive_histological_type, lymph_nodes_involved, lymph_nodes, 
+                                               distant_metastasis, molecular_subtype):
 
+    if distant_metastasis != []:
+        if "其他远处转移" in distant_metastasis:
+            return "Stage IVC"
+        elif "腹股沟淋巴结" in lymph_nodes_involved:
+            return "Stage IVC"        
+        elif "肺" in distant_metastasis:
+            return "Stage IVC"
+        elif "肝" in distant_metastasis:
+            return "Stage IVC"
+        elif "骨" in distant_metastasis:
+            return "Stage IVC" 
+        elif "腹腔腹膜" in distant_metastasis:
+            return "Stage IVB" 
+        elif "腹腔内癌" in distant_metastasis:
+            return "Stage IVB" 
+        else :
+            return "Stage IVA"
+    elif (extrauterine_diffusion != []) or (lymph_nodes_involved != []) :
+        if "腹主动脉旁淋巴结" in lymph_nodes_involved:
+            if "宏转移" in lymph_nodes:
+                return "Stage IIIC2ii"
+            elif lymph_nodes == []:
+                return "Stage IIIC2"
+            else:
+                return "Stage IIIC2i"
+        elif "盆腔淋巴结" in lymph_nodes_involved:
+            if "宏转移" in lymph_nodes:
+                return "Stage IIIC1ii"
+            elif lymph_nodes == []:
+                return "Stage IIIC1"
+            else:
+                return "Stage IIIC1i"
+        elif "盆腔腹膜" in extrauterine_diffusion:
+            return "Stage IIIB2"
+        elif "宫旁" in extrauterine_diffusion:
+            return "Stage IIIB1"    
+        elif "阴道" in extrauterine_diffusion:
+            return "Stage IIIB1"
+        elif "子宫浆膜层" in extrauterine_diffusion:
+            return "Stage IIIA2"
+        else: 
+            if "低级别子宫内膜样" in aggressive_histological_type:
+                return "Stage IA3"    
+            else:
+                return "Stage IIIA1"    
+    elif (cervical_stroma == "是") or (LVSI == "大量"):
+        if "p53abn" in molecular_subtype:
+            return "Stage IICm-p53abn"
+        elif "POLEmut" in molecular_subtype:     
+            return "Stage IAm-POLEmut"
+        elif LVSI == "大量":
+            return "Stage IIB"
+        else:
+            return "Stage IIA"
+    else:
+        if "p53abn" in molecular_subtype:
+            return "Stage IICm-p53abn"
+        elif "POLEmut" in molecular_subtype:     
+            return "Stage IAm-POLEmut"
+        elif (aggressive_histological_type in ['高级别子宫内膜样','浆液性','透明细胞','癌肉瘤','未分化','混合性','其他少见类型癌']) and ("局限于内膜" not in myometrial_invasion):
+            return "Stage IIC"
+        elif (aggressive_histological_type in ['高级别子宫内膜样','浆液性','透明细胞','癌肉瘤','未分化','混合性','其他少见类型癌']) and ("局限于内膜" in myometrial_invasion):
+            return "Stage IC"
+        elif "肌层浸润大于等于1/2" in myometrial_invasion:     
+            return "Stage IB"
+        elif "局限于内膜" in myometrial_invasion:     
+            return "Stage IA1"
+        else:
+            return "Stage IA2"
 
-def run():
-    st.set_page_config(
-        page_title="Hello",
-        page_icon="👋",
-    )
+# Streamlit 应用程序代码
+st.title('FIGO 2023 子宫内膜癌分期')
 
-    st.write("# Welcome to Streamlit! 👋")
+# 创建用户输入框和下拉菜单等组件
+myometrial_invasion = st.radio("肌层浸润: ",['局限于内膜','肌层浸润小于1/2','肌层浸润大于等于1/2'])
 
-    st.sidebar.success("Select a demo above.")
+cervical_stroma = st.radio("宫颈间质浸润: ", ["否","是"])
 
-    st.markdown(
-        """
-        Streamlit is an open-source app framework built specifically for
-        Machine Learning and Data Science projects.
-        **👈 Select a demo from the sidebar** to see some examples
-        of what Streamlit can do!
-        ### Want to learn more?
-        - Check out [streamlit.io](https://streamlit.io)
-        - Jump into our [documentation](https://docs.streamlit.io)
-        - Ask a question in our [community
-          forums](https://discuss.streamlit.io)
-        ### See more complex demos
-        - Use a neural net to [analyze the Udacity Self-driving Car Image
-          Dataset](https://github.com/streamlit/demo-self-driving)
-        - Explore a [New York City rideshare dataset](https://github.com/streamlit/demo-uber-nyc-pickups)
-    """
-    )
+LVSI = st.radio("LVSI: ", ["无或局灶性","大量"])
 
+aggressive_histological_type = st.radio("组织病理: ", ['低级别子宫内膜样','中级别子宫内膜样','高级别子宫内膜样','浆液性','透明细胞','癌肉瘤','未分化','混合性','其他少见类型癌'])
 
-if __name__ == "__main__":
-    run()
+extrauterine_diffusion = st.multiselect("局部扩散: ",['子宫浆膜层','附件','阴道','宫旁','盆腔腹膜'])
+
+lymph_nodes_involved = st.multiselect("淋巴结转移:",['盆腔淋巴结', '腹主动脉旁淋巴结', '腹股沟淋巴结'])
+
+lymph_nodes = st.multiselect("淋巴结状况:",['微转移', '宏转移'])
+    
+distant_metastasis = st.multiselect("肿瘤播散:",['肝','肺','骨','其他远处转移','腹腔腹膜','腹腔内癌','膀胱','肠粘膜'])
+    
+molecular_subtype = st.radio("分子分型: ", ["未分型", "p53abn", "dMMR", "NSMP", "POLEmut"])
+
+# 其他组件的创建方式类似...
+
+# 当用户点击按钮时，调用算法函数并显示结果
+if st.button('计算分期'):
+    stage = calculate_endometrial_cancer_stage(myometrial_invasion, cervical_stroma, extrauterine_diffusion,
+                                               LVSI, aggressive_histological_type, lymph_nodes_involved, lymph_nodes, 
+                                               distant_metastasis, molecular_subtype)
+    st.write(f"分期为: {stage}")
