@@ -17,8 +17,9 @@ import streamlit as st
 def calculate_endometrial_cancer_stage(myometrial_invasion, cervical_stroma, extrauterine_diffusion,
                                                LVSI, aggressive_histological_type, lymph_nodes_involved, lymph_nodes, 
                                                distant_metastasis, molecular_subtype):
-
-    if distant_metastasis != []:
+    if "腹股沟淋巴结" in lymph_nodes_involved:
+            return "Stage IVC"    
+    elif distant_metastasis != []:
         if "其他远处转移" in distant_metastasis:
             return "Stage IVC"
         elif "腹股沟淋巴结" in lymph_nodes_involved:
